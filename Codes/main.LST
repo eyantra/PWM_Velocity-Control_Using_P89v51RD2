@@ -1,0 +1,108 @@
+C51 COMPILER V8.08   MAIN                                                                  09/08/2010 16:58:37 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1           /******************************************************************************************
+   2          
+   3          This programme controls the speed of the motor by the Pulse Width Modulation method
+   4           
+   5          ******************************************************************************************/
+   6          
+   7          #include <intrins.h>
+   8          #include "p89v51rx2.h"
+   9          
+  10          //direction control bits
+  11          
+  12          sbit LB=P1^0;  //LEFT BACK Pin
+  13          sbit LF=P1^1;  //LEFT FRONT Pin
+  14          sbit RF=P1^2;  //RIGHT FRONT Pin
+  15          sbit RB=P3^4;  //RIGHT BACK Pin
+  16          
+  17          void delay_ms(unsigned int value)
+  18          {
+  19   1       unsigned int i, j;
+  20   1       for(i=0;i<value;i++)
+  21   1              for(j=0;j<53;j++);
+  22   1      }
+  23          
+  24          //Set left motor with velocity vel(compare value). 0x00 will give full (100% duty cycle) velocity, while 0
+             -xFF will give zero (0% duty cycle) velocity. Any value in between 0x00 and 0xFF will give intermediate velocity.
+  25          void left_motor_velocity(unsigned char vel)
+  26          {
+  27   1      CCAP0H=vel;
+  28   1      }
+  29          
+  30          //Set right motor with velocity vel(compare value). 0x00 will give full (100% duty cycle) velocity, while 
+             -0xFF will give zero (0% duty cycle) velocity. Any value in between 0x00 and 0xFF will give intermediate velocity.
+  31          void right_motor_velocity(unsigned char vel)
+  32          {
+  33   1      CCAP1H=vel;
+  34   1      }
+  35          
+  36          // motor direction control subroutines
+  37          void forward(void)
+  38          {
+  39   1      RF=1;
+  40   1      LF=1;
+  41   1      RB=0;
+  42   1      LB=0;
+  43   1      }
+  44          
+  45          //initialise programmable counter array module to generate pwm
+  46          //The CCAPnH register holds the reload value. CCAPnL register increments,and is loaded with this value eve
+             -rytime it overflows
+  47          //Thus the value in CCAPnH can be changed to change the motor velocity
+  48          void pca_init(void)
+  49          {
+  50   1       CMOD=0x80;        //80 sets PCA counter to run at Fosc/6; 
+  51   1       CCON=0x40;        //start PCA counter
+  52   1                                                      
+C51 COMPILER V8.08   MAIN                                                                  09/08/2010 16:58:37 PAGE 2   
+
+  53   1       CCAP0L=0x00;   
+  54   1       CCAP0H=0xFF;  //Left motor duty cycle register
+  55   1        
+  56   1       CCAP1L=0x00;                             
+  57   1       CCAP1H=0xFF;  //Right motor duty cycle register
+  58   1      
+  59   1       CCAPM0=0x42;  //enable PWM mode and ECOM bits for left motor
+  60   1       CCAPM1=0x42;  //enable PWM mode and ECOM bits for right motor
+  61   1      }
+  62          
+  63          void main()
+  64          {
+  65   1      pca_init();
+  66   1      /*******************************************************************************************
+  67   1       First set velocity for each motor by calling  left_motor_vel & right_motor_vel  functions
+  68   1       Then set the robot to move forward by calling forward function.
+  69   1       Robot can be made to move right or left by varying the left and right motor velocities.
+  70   1       If left motor velocity < right motor velocity then robot moves left or vice versa.
+  71   1       ******************************************************************************************/  
+  72   1      forward();
+  73   1      left_motor_velocity(0x4F);  //0x00 will give full (100% duty cycle) velocity, while 0xFF will give zero (0
+             -% duty cycle) velocity. Any value in between 0x00 and 0xFF will give intermediate velocity.                   
+  74   1      right_motor_velocity(0x6F); //0x00 will give full (100% duty cycle) velocity, while 0xFF will give zero (0
+             -% duty cycle) velocity. Any value in between 0x00 and 0xFF will give intermediate velocity.
+  75   1      
+  76   1      while(1);
+  77   1      }
+  78          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     89    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
